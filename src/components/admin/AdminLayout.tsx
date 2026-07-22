@@ -71,14 +71,28 @@ const AdminLayout = () => {
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("first_name, last_name, role")
+            .select("full_name")
             .eq("id", user.id)
             .single();
 
           if (profile) {
-            const userProfile = profile as { first_name?: string; last_name?: string; role?: string };
-            setUserName(`${userProfile.first_name || ""} ${userProfile.last_name || ""}`.trim() || user.email || "User");
-            setUserRole(userProfile.role || "admin");
+            const profileData = profile as any;
+            setUserName(profileData.full_name || user.email || "User");
+          }
+
+          // Fetch role from school_members
+          const { data: member } = await supabase
+            .from("school_members")
+            .select("role")
+            .eq("user_id", user.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (member) {
+            const memberData = member as any;
+            if (memberData.role) {
+              setUserRole(memberData.role);
+            }
           }
         }
       } catch (error) {
