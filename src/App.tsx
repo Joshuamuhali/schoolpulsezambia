@@ -95,6 +95,7 @@ import ModulePricingPage from "@/pages/admin/ModulePricingPage";
 import SetupFeePaymentPage from "@/pages/school/SetupFeePaymentPage";
 import ApprovalDashboardPage from "@/pages/admin/ApprovalDashboardPage";
 import AnalyticsPage from "@/pages/admin/AnalyticsPage";
+import SupportPage from "@/pages/admin/SupportPage";
 
 // Dashboard Router
 import { DashboardRouter } from "@/components/auth/DashboardRouter";
@@ -207,6 +208,7 @@ const App = () => (
             <Route path="parents" element={<ParentsPage />} />
             <Route path="settings/teachers" element={<TeacherSettingsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="support" element={<SupportPage />} />
           </Route>
 
           {/* ── Setup Fee Payment (requires auth) ───────────────────────── */}
