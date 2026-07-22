@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -19,6 +19,7 @@ import {
   Bell,
   Tags,
   CheckCircle,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/appStore";
 import { promoteToSuperAdmin } from "@/lib/services/users";
+import { supabase } from "@/lib/supabase/client";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -56,8 +58,36 @@ const AdminLayout = () => {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
   const navigate = useNavigate();
   const clearSession = useAppStore((s) => s.clearSession);
+
+  // Fetch current user info
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("first_name, last_name, role")
+            .eq("id", user.id)
+            .single();
+
+          if (profile) {
+            const userProfile = profile as { first_name?: string; last_name?: string; role?: string };
+            setUserName(`${userProfile.first_name || ""} ${userProfile.last_name || ""}`.trim() || user.email || "User");
+            setUserRole(userProfile.role || "admin");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleSignOut = () => {
     clearSession();
@@ -97,7 +127,9 @@ const AdminLayout = () => {
           <h2 className="font-display text-sm font-bold text-sidebar-foreground">Platform Command Center</h2>
           <div className="flex items-center gap-1 mt-0.5">
             <ShieldCheck className="h-3 w-3 text-primary" />
-            <p className="text-xs text-primary font-medium">👑 God Mode</p>
+            <p className="text-xs text-primary font-medium">
+              {userName ? `${userName} (${userRole})` : "Loading..."}
+            </p>
           </div>
         </div>
       </div>
@@ -180,7 +212,7 @@ const AdminLayout = () => {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
-              GM
+              {userName ? userName.split(" ").map(n => n[0]).join("").toUpperCase() : "U"}
             </div>
             <Bell className="h-5 w-5 text-muted-foreground" />
           </div>
