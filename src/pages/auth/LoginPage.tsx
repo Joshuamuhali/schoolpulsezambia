@@ -52,7 +52,7 @@ const LoginPage = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-success/90 to-success items-center justify-center p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-success/5">
           {[...Array(6)].map((_, i) => (
             <div
