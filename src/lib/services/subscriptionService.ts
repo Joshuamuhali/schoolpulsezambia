@@ -145,13 +145,13 @@ export const subscriptionService = {
   },
 
   /**
-   * Get tenant subscription
+   * Get school subscription
    */
   async getTenantSubscription(tenantId: string): Promise<TenantSubscription | null> {
     const { data, error } = await db
-      .from("tenant_subscriptions")
+      .from("school_subscriptions")
       .select("*")
-      .eq("tenant_id", tenantId)
+      .eq("school_id", tenantId)
       .single();
 
     if (error) throw error;
@@ -159,16 +159,16 @@ export const subscriptionService = {
   },
 
   /**
-   * Create or update tenant subscription
+   * Create or update school subscription
    */
   async upsertTenantSubscription(
     tenantId: string,
     subscription: Partial<TenantSubscription>
   ): Promise<TenantSubscription> {
     const { data, error } = await db
-      .from("tenant_subscriptions")
+      .from("school_subscriptions")
       .upsert({
-        tenant_id: tenantId,
+        school_id: tenantId,
         ...subscription,
         updated_at: new Date().toISOString(),
       } as any)
@@ -180,14 +180,14 @@ export const subscriptionService = {
   },
 
   /**
-   * Get tenant features
+   * Get school modules
    */
   async getTenantFeatures(tenantId: string): Promise<TenantFeature[]> {
     const { data, error } = await db
-      .from("tenant_features")
+      .from("school_modules")
       .select("*")
-      .eq("tenant_id", tenantId)
-      .order("feature_id");
+      .eq("school_id", tenantId)
+      .order("module_code");
 
     if (error) throw error;
     return data as TenantFeature[];
@@ -235,14 +235,14 @@ export const subscriptionService = {
    * Submit payment proof
    */
   async submitPayment(payment: {
-    tenant_id: string;
+    school_id: string;
     amount: number;
     payment_method: string;
     reference: string;
     proof_url?: string;
   }): Promise<SubscriptionPayment> {
     const { data, error } = await db
-      .from("subscription_payments")
+      .from("school_payments")
       .insert(payment as any)
       .select()
       .single();
@@ -252,14 +252,14 @@ export const subscriptionService = {
   },
 
   /**
-   * Get tenant payments
+   * Get school payments
    */
   async getTenantPayments(tenantId: string): Promise<SubscriptionPayment[]> {
     const { data, error } = await db
-      .from("subscription_payments")
+      .from("school_payments")
       .select("*")
-      .eq("tenant_id", tenantId)
-      .order("submitted_at", { ascending: false });
+      .eq("school_id", tenantId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return data as SubscriptionPayment[];
@@ -270,10 +270,10 @@ export const subscriptionService = {
    */
   async getPendingPayments(): Promise<SubscriptionPayment[]> {
     const { data, error } = await db
-      .from("subscription_payments")
+      .from("school_payments")
       .select("*")
       .eq("status", "pending")
-      .order("submitted_at", { ascending: true });
+      .order("created_at", { ascending: true });
 
     if (error) throw error;
     return data as SubscriptionPayment[];
@@ -308,17 +308,15 @@ export const subscriptionService = {
    */
   async getAllSubscriptions(): Promise<
     (TenantSubscription & {
-      tenants: { name: string; slug: string };
-      subscription_plans: { name: string; price: number };
+      schools: { name: string };
     })[]
   > {
     const { data, error } = await db
-      .from("tenant_subscriptions")
+      .from("school_subscriptions")
       .select(
         `
         *,
-        tenants (name, slug),
-        subscription_plans (name, price)
+        schools (name)
       `
       )
       .order("created_at", { ascending: false });
