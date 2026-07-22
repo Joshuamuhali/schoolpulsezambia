@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Circular background -->
+  <circle cx="32" cy="32" r="30" fill="#22c55e" stroke="#16a34a" stroke-width="2"/>
+
+  <!-- Pulse/ECG line -->
+  <path d="M 8 32 L 20 32 L 24 32 L 28 20 L 32 44 L 36 28 L 40 32 L 56 32"
+        stroke="white"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
+
+  <!-- Small dot at start -->
+  <circle cx="8" cy="32" r="2" fill="white"/>
+</svg>
