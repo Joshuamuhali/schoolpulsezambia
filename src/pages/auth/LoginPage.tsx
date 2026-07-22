@@ -52,25 +52,25 @@ const LoginPage = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-success/90 to-success items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-success/5">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="absolute rounded-full bg-primary"
+              className="absolute rounded-full bg-success"
               style={{
                 width: `${60 + i * 40}px`,
                 height: `${60 + i * 40}px`,
                 top: `${10 + i * 15}%`,
                 left: `${5 + i * 12}%`,
-                opacity: 0.1 + i * 0.05,
+                opacity: 0.15 + i * 0.08,
               }}
             />
           ))}
         </div>
         <div className="relative z-10 text-center space-y-6">
           <Activity className="mx-auto h-20 w-20 text-primary" />
-          <h2 className="font-display text-4xl font-bold text-primary-foreground">School Pulse</h2>
+          <h2 className="font-display text-4xl font-bold text-success">School Management Platform</h2>
           <p className="text-primary-foreground/70 max-w-sm">
             Multi-tenant school management — modular, transparent, and built for African schools.
           </p>
@@ -87,9 +87,9 @@ const LoginPage = () => {
           <div className="text-center lg:text-left">
             <div className="flex items-center gap-2 mb-4 justify-center lg:justify-start">
               <Activity className="h-8 w-8 text-primary" />
-              <span className="font-display text-xl font-bold">School Pulse</span>
+              <span className="font-display text-xl font-bold text-primary">School Pulse</span>
             </div>
-            <h1 className="font-display text-2xl font-bold">Welcome back</h1>
+            <h1 className="font-display text-3xl font-bold text-primary mb-2">Create Your School</h1>
             <p className="mt-1 text-muted-foreground">Sign in to your school portal</p>
           </div>
 
@@ -151,12 +151,25 @@ const LoginPage = () => {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            New school?{" "}
-            <Link to="/onboarding" className="text-primary font-medium hover:underline">
-              Register your school
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-primary/20" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-background text-muted-foreground">New to School Pulse?</span>
+            </div>
+          </div>
+
+          <div className="text-center space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Create your school account and get started today
+            </p>
+            <Link to="/onboarding">
+              <Button variant="outline" size="lg" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                Create Your School
+              </Button>
             </Link>
-          </p>
+          </div>
         </motion.div>
       </div>
     </div>
