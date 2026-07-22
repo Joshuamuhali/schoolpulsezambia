@@ -253,7 +253,7 @@ const PaymentsPage = () => {
                         <div>
                           <p className="font-medium">{payment.schools?.name || "Unknown School"}</p>
                           <p className="text-xs text-muted-foreground">
-                            {payment.profiles?.first_name} {payment.profiles?.last_name}
+                            {payment.profiles?.full_name || "N/A"}
                           </p>
                         </div>
                       </TableCell>
