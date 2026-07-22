@@ -85,23 +85,21 @@ export async function fetchAllUsers(filters?: {
     .select(`
       id,
       email,
-      first_name,
-      last_name,
+      full_name,
       phone,
       created_at,
       school_members (
         school_id,
-        role_id,
+        role,
         is_active,
-        schools ( id, name ),
-        roles ( key, name )
+        schools ( id, name )
       )
     `)
     .order("created_at", { ascending: false });
 
   if (filters?.search) {
     query = query.or(
-      `first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`
+      `full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`
     );
   }
 
@@ -138,12 +136,12 @@ export async function createPlatformAdmin(userData: {
 export async function updateUserRole(
   userId: string,
   schoolId: string | null,
-  roleId: string,
+  role: string,
   isActive: boolean
 ) {
   const { data, error } = await db
     .from("school_members")
-    .update({ role_id: roleId, is_active: isActive })
+    .update({ role, is_active: isActive })
     .eq("user_id", userId)
     .eq("school_id", schoolId)
     .select()
@@ -180,7 +178,7 @@ export async function fetchAllPayments(filters?: {
   endDate?: string;
 }) {
   let query = db
-    .from("payments")
+    .from("school_payments")
     .select(`
       id,
       amount,
@@ -191,7 +189,7 @@ export async function fetchAllPayments(filters?: {
       created_at,
       verified_at,
       schools ( id, name ),
-      profiles ( id, first_name, last_name )
+      profiles ( id, full_name )
     `)
     .order("created_at", { ascending: false });
 
@@ -254,11 +252,11 @@ export async function fetchSystemLogs(filters?: {
       id,
       action,
       table_name,
-      actor_id,
+      user_id,
       school_id,
       created_at,
-      after_state,
-      profiles ( id, first_name, last_name, email ),
+      metadata,
+      profiles ( id, full_name, email ),
       schools ( id, name )
     `)
     .order("created_at", { ascending: false });
@@ -314,11 +312,11 @@ export async function fetchPlatformUserStats() {
       db
         .from("school_members")
         .select("user_id", { count: "exact", head: true })
-        .eq("role_id", (await fetchRoleId("admin")) || ""),
+        .eq("role", "admin"),
       db
         .from("school_members")
         .select("user_id", { count: "exact", head: true })
-        .eq("role_id", (await fetchRoleId("teacher")) || ""),
+        .eq("role", "teacher"),
       db
         .from("profiles")
         .select("id", { count: "exact", head: true })
@@ -339,19 +337,19 @@ export async function fetchPlatformUserStats() {
 export async function fetchPaymentStats() {
   const [pending, approved, rejected, totalAmount] = await Promise.all([
     db
-      .from("payments")
+      .from("school_payments")
       .select("id", { count: "exact", head: true })
       .eq("status", "pending"),
     db
-      .from("payments")
+      .from("school_payments")
       .select("id", { count: "exact", head: true })
       .eq("status", "verified"),
     db
-      .from("payments")
+      .from("school_payments")
       .select("id", { count: "exact", head: true })
       .eq("status", "rejected"),
     db
-      .from("payments")
+      .from("school_payments")
       .select("amount")
       .eq("status", "verified"),
   ]);
@@ -372,24 +370,18 @@ export async function fetchPaymentStats() {
 // ─── Helper Functions ─────────────────────────────────────────────────────────
 
 async function fetchRoleId(roleKey: string): Promise<string | null> {
-  const { data, error } = await db
-    .from("roles")
-    .select("id")
-    .eq("key", roleKey)
-    .single();
-
-  if (error || !data) return null;
-  return data.id;
+  // Roles are stored as text in school_members, not in a separate roles table
+  return roleKey;
 }
 
 export async function fetchRoles() {
-  const { data, error } = await db
-    .from("roles")
-    .select("id, key, name, description")
-    .order("name");
-
-  if (error) throw error;
-  return data ?? [];
+  // Return common roles since there's no roles table
+  return [
+    { id: "admin", key: "admin", name: "Admin", description: "School administrator" },
+    { id: "teacher", key: "teacher", name: "Teacher", description: "Teaching staff" },
+    { id: "parent", key: "parent", name: "Parent", description: "Parent/Guardian" },
+    { id: "student", key: "student", name: "Student", description: "Student" },
+  ];
 }
 
 export async function fetchSubscriptionPlans() {
