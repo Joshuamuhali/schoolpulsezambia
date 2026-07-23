@@ -23,6 +23,7 @@ import { EmailConfirmationBanner } from "@/components/auth/EmailConfirmationBann
 import { useAppStore, type FeatureKey } from "@/store/appStore";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { useSidebarItems } from "@/hooks/useSidebarItems";
+import { PaymentConfirmationPopUp } from "@/components/payment/PaymentConfirmationPopUp";
 import {
   Tooltip,
   TooltipContent,
@@ -159,6 +160,9 @@ const SchoolLayout = () => {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Preview / suspended / payment_pending banner */}
         <PreviewBanner />
+        
+        {/* Payment confirmation pop-up */}
+        <PaymentConfirmationPopUp />
         
         {/* Email confirmation banner */}
         <div className="px-4 lg:px-8 pt-4">

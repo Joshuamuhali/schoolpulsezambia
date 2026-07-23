@@ -12,6 +12,7 @@ import {
   Calendar,
   BarChart3,
   Settings,
+  Package,
 } from "lucide-react";
 
 export interface NavItem {
@@ -39,6 +40,7 @@ export function useSidebarItems() {
       { to: "/dashboard/communication", icon: MessageSquare, label: "Communication", featureKey: "communication" },
       { to: "/dashboard/timetable", icon: Calendar, label: "Timetable", featureKey: "timetable" },
       { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics", featureKey: "analytics" },
+      { to: "/dashboard/features", icon: Package, label: "Features" },
       { to: "/dashboard/settings", icon: Settings, label: "Settings", featureKey: undefined },
     ],
     []

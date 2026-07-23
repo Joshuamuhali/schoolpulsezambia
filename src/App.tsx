@@ -10,6 +10,11 @@ import LoginPage from "@/pages/auth/LoginPage";
 import OnboardingPage from "@/pages/auth/OnboardingPage";
 import { ActivationPage } from "@/pages/auth/ActivationPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import { BlockedAccessPage } from "@/pages/auth/BlockedAccessPage";
+
+// Onboarding
+import ModuleSelectionPage from "@/pages/onboarding/ModuleSelectionPage";
+import PaymentPage from "@/pages/onboarding/PaymentPage";
 
 // Landing
 import Index from "@/pages/Index";
@@ -84,6 +89,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import SchoolsPage from "@/pages/admin/SchoolsPage";
 import SchoolDetailPage from "@/pages/admin/SchoolDetailPage";
 import FeaturesPage from "@/pages/admin/FeaturesPage";
+import FeaturesManagementPage from "@/pages/admin/FeaturesManagementPage";
 import PricingPage from "@/pages/admin/PricingPage";
 import ActivationQueuePage from "@/pages/admin/ActivationQueuePage";
 import SubscriptionsPage from "@/pages/admin/SubscriptionsPage";
@@ -91,11 +97,10 @@ import UsersPage from "@/pages/admin/UsersPage";
 import PaymentsPage from "@/pages/admin/PaymentsPage";
 import LogsPage from "@/pages/admin/LogsPage";
 import AdminSettingsPage from "@/pages/admin/SettingsPage";
-import ModulePricingPage from "@/pages/admin/ModulePricingPage";
 import SetupFeePaymentPage from "@/pages/school/SetupFeePaymentPage";
-import ApprovalDashboardPage from "@/pages/admin/ApprovalDashboardPage";
 import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import SupportPage from "@/pages/admin/SupportPage";
+import SchoolFeaturesPage from "@/pages/school/FeaturesPage";
 
 // Dashboard Router
 import { DashboardRouter } from "@/components/auth/DashboardRouter";
@@ -120,8 +125,11 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/onboarding/modules" element={<ModuleSelectionPage />} />
+          <Route path="/onboarding/payment" element={<PaymentPage />} />
           <Route path="/onboarding/activate" element={<ActivationPage />} />
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/access-blocked" element={<BlockedAccessPage />} />
 
           {/* Legacy /login redirect */}
           <Route path="/login" element={<Navigate to="/auth/login" replace />} />
@@ -180,6 +188,7 @@ const App = () => (
             <Route path="analytics/reports" element={<Reports />} />
             <Route path="teachers" element={<PrincipalTeachersPage />} />
             <Route path="teachers/assign/:teacherId" element={<TeacherAssignmentPage />} />
+            <Route path="features" element={<SchoolFeaturesPage />} />
           </Route>
 
           {/* ── Platform Admin Portal (requires auth + platform admin role) ─── */}
@@ -198,13 +207,14 @@ const App = () => (
             <Route path="users" element={<UsersPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="logs" element={<LogsPage />} />
-            <Route path="features" element={<FeaturesPage />} />
+            <Route path="features" element={<FeaturesManagementPage />} />
             <Route path="pricing" element={<PricingPage />} />
             <Route path="activation" element={<ActivationQueuePage />} />
             <Route path="subscriptions" element={<SubscriptionsPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
-            <Route path="modules/pricing" element={<ModulePricingPage />} />
-            <Route path="approvals" element={<ApprovalDashboardPage />} />
+            {/* Redirects for consolidated navigation */}
+            <Route path="modules/pricing" element={<Navigate to="/admin/features" replace />} />
+            <Route path="approvals" element={<Navigate to="/admin/payments" replace />} />
             <Route path="parents" element={<ParentsPage />} />
             <Route path="settings/teachers" element={<TeacherSettingsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />

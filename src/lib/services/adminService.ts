@@ -80,21 +80,10 @@ export async function fetchAllUsers(filters?: {
   role?: string;
   schoolId?: string;
 }) {
+  // Use profiles_view to avoid nested join issues and 406 errors
   let query = db
-    .from("profiles")
-    .select(`
-      id,
-      email,
-      full_name,
-      phone,
-      created_at,
-      school_members (
-        school_id,
-        role,
-        is_active,
-        schools ( id, name )
-      )
-    `)
+    .from("profiles_view")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (filters?.search) {
@@ -104,7 +93,7 @@ export async function fetchAllUsers(filters?: {
   }
 
   if (filters?.schoolId) {
-    query = query.eq("school_members.school_id", filters.schoolId);
+    query = query.eq("school_id", filters.schoolId);
   }
 
   const { data, error } = await query;
@@ -169,6 +158,71 @@ export async function enableUser(userId: string) {
   if (error) throw error;
 }
 
+export async function deleteUser(userId: string) {
+  const { data, error } = await db.rpc("delete_user", {
+    p_user_id: userId,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function blockUser(userId: string, reason: string) {
+  const currentUser = (await supabaseClient.auth.getUser()).data.user;
+  
+  const { error: profileError } = await db
+    .from("profiles")
+    .update({
+      is_blocked: true,
+      blocked_reason: reason,
+      blocked_at: new Date().toISOString(),
+      blocked_by: currentUser?.id,
+    })
+    .eq("id", userId);
+
+  if (profileError) throw profileError;
+
+  const { error: logError } = await db
+    .from("blocked_users_log")
+    .insert({
+      user_id: userId,
+      admin_id: currentUser?.id,
+      action: "block",
+      reason: reason,
+    });
+
+  if (logError) throw logError;
+}
+
+export async function unblockUser(userId: string, reason: string) {
+  const currentUser = (await supabaseClient.auth.getUser()).data.user;
+  
+  const { error: profileError } = await db
+    .from("profiles")
+    .update({
+      is_blocked: false,
+      blocked_reason: null,
+      blocked_at: null,
+      blocked_by: null,
+      unblocked_at: new Date().toISOString(),
+      unblocked_by: currentUser?.id,
+    })
+    .eq("id", userId);
+
+  if (profileError) throw profileError;
+
+  const { error: logError } = await db
+    .from("blocked_users_log")
+    .insert({
+      user_id: userId,
+      admin_id: currentUser?.id,
+      action: "unblock",
+      reason: reason,
+    });
+
+  if (logError) throw logError;
+}
+
 // ─── Payment Management ───────────────────────────────────────────────────────
 
 export async function fetchAllPayments(filters?: {
@@ -177,20 +231,10 @@ export async function fetchAllPayments(filters?: {
   startDate?: string;
   endDate?: string;
 }) {
+  // Use the payments_simple view to avoid nested join issues
   let query = db
-    .from("school_payments")
-    .select(`
-      id,
-      amount,
-      currency,
-      status,
-      payment_method,
-      reference,
-      created_at,
-      verified_at,
-      schools ( id, name ),
-      profiles ( id, full_name )
-    `)
+    .from("payments_simple")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (filters?.schoolId) {
@@ -354,10 +398,7 @@ export async function fetchPaymentStats() {
       .eq("status", "verified"),
   ]);
 
-  const totalRevenue = (totalAmount.data ?? []).reduce(
-    (sum: number, p: { amount: number }) => sum + Number(p.amount),
-    0
-  );
+  const totalRevenue = (totalAmount.data ?? []).reduce((sum: number, p: { amount: number }) => sum + Number(p.amount), 0);
 
   return {
     pendingPayments: pending.count ?? 0,
@@ -370,18 +411,24 @@ export async function fetchPaymentStats() {
 // ─── Helper Functions ─────────────────────────────────────────────────────────
 
 async function fetchRoleId(roleKey: string): Promise<string | null> {
-  // Roles are stored as text in school_members, not in a separate roles table
-  return roleKey;
+  const { data, error } = await db
+    .from("roles")
+    .select("id")
+    .eq("key", roleKey)
+    .single();
+
+  if (error || !data) return null;
+  return data.id;
 }
 
 export async function fetchRoles() {
-  // Return common roles since there's no roles table
-  return [
-    { id: "admin", key: "admin", name: "Admin", description: "School administrator" },
-    { id: "teacher", key: "teacher", name: "Teacher", description: "Teaching staff" },
-    { id: "parent", key: "parent", name: "Parent", description: "Parent/Guardian" },
-    { id: "student", key: "student", name: "Student", description: "Student" },
-  ];
+  const { data, error } = await db
+    .from("roles")
+    .select("id, key, name, description")
+    .order("name");
+
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function fetchSubscriptionPlans() {

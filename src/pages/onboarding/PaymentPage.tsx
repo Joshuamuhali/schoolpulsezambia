@@ -2,14 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Upload,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  FileText,
-  IndianRupee,
-} from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, Loader2, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,55 +18,67 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
-import { subscriptionService } from "@/lib/services/subscriptionService";
 import { toast } from "sonner";
 
-const SetupFeePaymentPage = () => {
+const PaymentPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedMethod, setSelectedMethod] = useState("");
   const [reference, setReference] = useState("");
-  const [amount, setAmount] = useState(3500);
+  const [amount, setAmount] = useState(0);
   const [notes, setNotes] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Fetch school subscription data
-  const { data: subscription, isLoading: subscriptionLoading } = useQuery({
-    queryKey: ["school-subscription"],
+  // Fetch module selection
+  const { data: selection, isLoading: selectionLoading } = useQuery({
+    queryKey: ["module-selection"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // @ts-ignore - getTenantSubscription expects tenantId
-      return await subscriptionService.getTenantSubscription(user.id);
-    },
-  });
-
-  // Fetch setup fee from system settings
-  const { data: setupFee } = useQuery({
-    queryKey: ["setup-fee"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("key", "setup_fee")
+      const { data: member } = await supabase
+        .from("school_members")
+        .select("school_id")
+        .eq("user_id", user.id)
         .single();
 
-      if (error || !data) return 3500;
-      // @ts-ignore - data.value type inference issue
-      return data.value?.amount || 3500;
+      if (!member) throw new Error("No school found");
+
+      const { data, error } = await supabase
+        .from("school_module_selections")
+        .select("*")
+        .eq("school_id", member.school_id)
+        .single();
+
+      if (error) throw error;
+      return data as any;
     },
   });
 
+  // Submit payment
   const submitMutation = useMutation({
-    mutationFn: async (paymentData: any) => {
-      // @ts-ignore - submitPayment expects tenant_id
-      return await subscriptionService.submitPayment(paymentData);
+    mutationFn: async (paymentData: { school_id: string; amount: number; payment_method: string; reference: string; proof_url: string; notes?: string }) => {
+      const { data, error } = await supabase
+        .from("school_payments")
+        .insert({
+          school_id: paymentData.school_id,
+          amount: paymentData.amount,
+          payment_method: paymentData.payment_method,
+          reference: paymentData.reference,
+          proof_url: paymentData.proof_url,
+          notes: paymentData.notes,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       toast.success("Payment submitted successfully! Awaiting admin approval.");
-      queryClient.invalidateQueries({ queryKey: ["school-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["module-selection"] });
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
@@ -84,10 +89,10 @@ const SetupFeePaymentPage = () => {
   });
 
   useEffect(() => {
-    if (setupFee) {
-      setAmount(setupFee);
+    if (selection) {
+      setAmount(selection.grand_total || 0);
     }
-  }, [setupFee]);
+  }, [selection]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -121,12 +126,20 @@ const SetupFeePaymentPage = () => {
     setUploading(true);
 
     try {
-      // Upload payment proof
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const { data: member } = await supabase
+        .from("school_members")
+        .select("school_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!member) throw new Error("No school found");
+
+      // Upload payment proof
       const fileExt = proofFile.name.split(".").pop();
-      const fileName = `${user.id}/payment-proof-${Date.now()}.${fileExt}`;
+      const fileName = `${member.school_id}/payment-proof-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("payment-proofs")
@@ -134,24 +147,14 @@ const SetupFeePaymentPage = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get school_id from school_members
-      const { data: member } = await supabase
-        .from("school_members")
-        .select("school_id")
-        .eq("user_id", user.id)
-        .single();
-
-      const schoolId = member?.school_id || user.user_metadata?.school_id;
-
       // Submit payment record
       await submitMutation.mutateAsync({
-        school_id: schoolId,
-        tenant_id: user.id,
+        school_id: member.school_id,
         amount,
         payment_method: selectedMethod,
         reference,
         proof_url: fileName,
-        payment_type: "setup_fee",
+        notes,
       });
     } catch (error: any) {
       toast.error(error.message || "Failed to upload payment proof");
@@ -160,7 +163,7 @@ const SetupFeePaymentPage = () => {
     }
   };
 
-  if (subscriptionLoading) {
+  if (selectionLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -168,29 +171,22 @@ const SetupFeePaymentPage = () => {
     );
   }
 
-  // Check if setup fee is already paid
-  // @ts-ignore - subscription type mismatch
-  if (subscription?.setup_fee_paid) {
+  if (!selection) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
-        >
-          <Card className="text-center p-8">
-            <CheckCircle className="mx-auto h-16 w-16 text-success mb-6" />
-            <CardTitle className="text-2xl mb-2">Setup Fee Paid!</CardTitle>
-            <CardDescription className="text-lg">
-              Your payment has been verified. Your school is now active.
-            </CardDescription>
-            <div className="mt-6">
-              <Button variant="hero" className="w-full" onClick={() => navigate("/dashboard")}>
-                Go to Dashboard
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">No Module Selection Found</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-4">
+              Please select modules before making a payment.
+            </p>
+            <Button onClick={() => navigate("/onboarding/modules")}>
+              Select Modules
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -199,9 +195,9 @@ const SetupFeePaymentPage = () => {
     <div className="min-h-screen bg-muted/30 p-4 py-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="font-display text-3xl font-bold">Complete Setup Fee Payment</h1>
+          <h1 className="font-display text-3xl font-bold">Complete Payment</h1>
           <p className="text-muted-foreground mt-2">
-            Pay the one-time setup fee to activate your school
+            Pay the setup fee to activate your school
           </p>
         </div>
 
@@ -209,14 +205,14 @@ const SetupFeePaymentPage = () => {
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="font-display text-lg flex items-center gap-2">
-              <IndianRupee className="h-5 w-5 text-primary" />
+              <FileText className="h-5 w-5 text-primary" />
               Payment Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg">
               <div>
-                <p className="text-sm text-muted-foreground">One-time Setup Fee</p>
+                <p className="text-sm text-muted-foreground">Total Amount Due</p>
                 <p className="text-3xl font-bold text-primary">
                   K{amount.toLocaleString()}
                 </p>
@@ -229,7 +225,8 @@ const SetupFeePaymentPage = () => {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                This is a one-time payment to activate your school. Module fees will be charged separately based on your selected modules.
+                This includes setup fee (K100) + first month subscription. Module fees will be charged
+                monthly based on your selected modules.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -238,9 +235,7 @@ const SetupFeePaymentPage = () => {
         {/* Payment Form */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="font-display text-lg">
-              Payment Information
-            </CardTitle>
+            <CardTitle className="font-display text-lg">Payment Information</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -341,9 +336,7 @@ const SetupFeePaymentPage = () => {
         {/* Payment Instructions */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="font-display text-lg">
-              Payment Instructions
-            </CardTitle>
+            <CardTitle className="font-display text-lg">Payment Instructions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>
@@ -365,4 +358,4 @@ const SetupFeePaymentPage = () => {
   );
 };
 
-export default SetupFeePaymentPage;
+export default PaymentPage;

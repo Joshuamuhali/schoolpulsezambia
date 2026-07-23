@@ -28,6 +28,19 @@ export const DashboardRouter = () => {
         return;
       }
 
+      // Check if user is blocked (applies to all users)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: blockStatus } = await supabase.rpc("get_user_block_status", {
+          p_user_id: user.id,
+        });
+        if (blockStatus && (blockStatus as any).is_blocked) {
+          setCheckingOnboarding(false);
+          navigate("/access-blocked", { replace: true });
+          return;
+        }
+      }
+
       // Check if platform admin
       const { data: isAdmin } = await supabase.rpc("is_platform_admin");
       const platformAdmin = isAdmin ?? false;
@@ -48,14 +61,7 @@ export const DashboardRouter = () => {
       }
 
       // For school users, check if they need to complete onboarding
-      if (currentSchool && !isParent && !platformAdmin) {
-        // Check if school has completed module selection and payment
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setCheckingOnboarding(false);
-          return;
-        }
-
+      if (currentSchool && !isParent && !platformAdmin && user) {
         const { data: member } = await supabase
           .from("school_members")
           .select("school_id")
@@ -63,6 +69,28 @@ export const DashboardRouter = () => {
           .single();
 
         if (member) {
+          // Check if setup fee is paid
+          const { data: subscription } = await supabase
+            .from("school_subscriptions")
+            .select("setup_fee_paid")
+            .eq("school_id", (member as any).school_id)
+            .maybeSingle();
+
+          const { data: verifiedPayment } = await supabase
+            .from("school_payments")
+            .select("id")
+            .eq("school_id", (member as any).school_id)
+            .eq("payment_type", "setup_fee")
+            .eq("status", "verified");
+
+          const isSetupFeePaid = subscription?.setup_fee_paid || (verifiedPayment && verifiedPayment.length > 0);
+
+          if (!isSetupFeePaid) {
+            setCheckingOnboarding(false);
+            navigate("/school/setup-fee-payment", { replace: true });
+            return;
+          }
+
           // Check if module selection exists
           const { data: moduleSelection } = await supabase
             .from("school_module_selections")
@@ -70,15 +98,8 @@ export const DashboardRouter = () => {
             .eq("school_id", (member as any).school_id)
             .single();
 
-          // Check if payment exists
-          const { data: payment } = await supabase
-            .from("school_payments")
-            .select("id")
-            .eq("school_id", (member as any).school_id)
-            .single();
-
-          // If no module selection or no payment, redirect to module selection
-          if (!moduleSelection || !payment) {
+          // If no module selection, redirect to module selection
+          if (!moduleSelection) {
             setCheckingOnboarding(false);
             navigate("/onboarding/modules", { replace: true });
             return;

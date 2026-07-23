@@ -84,25 +84,20 @@ const SupportPage = () => {
     staleTime: 30_000,
   });
 
-  // Update ticket status/response
+  // Update ticket status
   const updateTicketMutation = useMutation({
     mutationFn: async (params: {
       ticketId: string;
       status?: string;
-      response?: string;
     }) => {
-      const { ticketId, status, response } = params;
-      
+      const { ticketId, status } = params;
+
       const updateData: any = {
         updated_at: new Date().toISOString(),
       };
 
       if (status !== undefined) {
         updateData.status = status;
-      }
-      if (response !== undefined) {
-        updateData.response = response;
-        updateData.responded_at = new Date().toISOString();
       }
 
       // @ts-ignore - Supabase type inference issue with dynamic updates
@@ -133,7 +128,6 @@ const SupportPage = () => {
     updateTicketMutation.mutate({
       ticketId: selectedTicket.id,
       status,
-      response: response || undefined,
     });
   };
 
@@ -414,7 +408,7 @@ const SupportPage = () => {
 
               {selectedTicket.response && (
                 <div className="space-y-2">
-                  <Label>Your Response</Label>
+                  <Label>Response</Label>
                   <div className="p-4 bg-success/5 border border-success/20 rounded-lg">
                     <p className="text-sm whitespace-pre-wrap">{selectedTicket.response}</p>
                     <p className="text-xs text-muted-foreground mt-2">
@@ -461,12 +455,6 @@ const SupportPage = () => {
                     onClick={() => setSelectedTicket(null)}
                   >
                     Close
-                  </Button>
-                  <Button
-                    onClick={() => handleUpdateTicket()}
-                    disabled={updateTicketMutation.isPending || !response.trim()}
-                  >
-                    Send Response
                   </Button>
                 </div>
               </div>
