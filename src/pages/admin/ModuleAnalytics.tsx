@@ -102,15 +102,15 @@ export function ModuleAnalytics() {
         updated_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabase
+      const result = await supabase
         .from('module_catalog')
         .update(updates as any)
         .eq('code', code)
         .select()
         .single();
 
-      if (error) throw error;
-      return data as any;
+      if (result.error) throw result.error;
+      return result.data as any;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feature-analytics'] });
