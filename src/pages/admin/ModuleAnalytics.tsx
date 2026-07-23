@@ -95,22 +95,22 @@ export function ModuleAnalytics() {
     mutationFn: async (params: { code: string; prices: { price_monthly: number; price_termly: number; price_annual: number } }) => {
       const { code, prices } = params;
       
-      const updates = {
-        price_monthly: prices.price_monthly,
-        price_termly: prices.price_termly,
-        price_annual: prices.price_annual,
-        updated_at: new Date().toISOString()
-      };
-
-      const result = await supabase
+      const query = (supabase as any)
         .from('module_catalog')
-        .update(updates as any)
+        .update({
+          price_monthly: prices.price_monthly,
+          price_termly: prices.price_termly,
+          price_annual: prices.price_annual,
+          updated_at: new Date().toISOString()
+        })
         .eq('code', code)
         .select()
         .single();
-
-      if (result.error) throw result.error;
-      return result.data as any;
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feature-analytics'] });
