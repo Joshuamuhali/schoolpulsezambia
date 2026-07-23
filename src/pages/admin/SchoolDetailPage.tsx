@@ -49,9 +49,9 @@ const SchoolDetailPage = () => {
           <h1 className="font-display text-2xl font-bold">
             {schoolLoading ? <Skeleton className="h-8 w-64" /> : school?.name}
           </h1>
-          <p className="text-muted-foreground">
+          <div className="text-muted-foreground">
             {schoolLoading ? <Skeleton className="h-4 w-48 mt-1" /> : `School Details & Configuration`}
-          </p>
+          </div>
         </div>
       </div>
 
