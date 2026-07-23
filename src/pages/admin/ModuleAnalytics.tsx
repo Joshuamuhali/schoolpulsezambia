@@ -95,7 +95,7 @@ export function ModuleAnalytics() {
     mutationFn: async (params: { code: string; prices: { price_monthly: number; price_termly: number; price_annual: number } }) => {
       const { code, prices } = params;
       
-      const updates: any = {
+      const updates = {
         price_monthly: prices.price_monthly,
         price_termly: prices.price_termly,
         price_annual: prices.price_annual,
@@ -104,13 +104,13 @@ export function ModuleAnalytics() {
 
       const { data, error } = await supabase
         .from('module_catalog')
-        .update(updates)
+        .update(updates as any)
         .eq('code', code)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return data as any;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feature-analytics'] });
