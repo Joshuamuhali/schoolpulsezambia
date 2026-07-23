@@ -12,12 +12,15 @@ import type { School } from "@/lib/supabase/types";
 import FeatureFlagAssignment from "@/components/admin/FeatureFlagAssignment";
 
 const SchoolDetailPage = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { data: school, isLoading: schoolLoading, error: schoolError } = useQuery({
     queryKey: ["school", id],
-    queryFn: () => fetchSchoolById(id!),
+    queryFn: async () => {
+      if (!id) throw new Error("School ID is required");
+      return fetchSchoolById(id);
+    },
     enabled: !!id,
   });
 
