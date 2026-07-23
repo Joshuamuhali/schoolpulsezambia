@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, School, Calendar } from "lucide-react";
+import { ArrowLeft, School as SchoolIcon, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,8 +83,8 @@ const SchoolDetailPage = () => {
           {/* School Information */}
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle className="font-display flex items-center gap-2">
-                <School className="h-5 w-5 text-primary" />
+            <CardTitle className="font-display flex items-center gap-2">
+                <SchoolIcon className="h-5 w-5 text-primary" />
                 School Information
               </CardTitle>
             </CardHeader>
