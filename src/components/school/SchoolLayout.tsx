@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PreviewBanner } from "@/components/PreviewBanner";
 import { EmailConfirmationBanner } from "@/components/auth/EmailConfirmationBanner";
+import { SetupBanner } from "@/components/dashboard/SetupBanner";
 import { useAppStore, type FeatureKey } from "@/store/appStore";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { useSidebarItems } from "@/hooks/useSidebarItems";
@@ -36,6 +37,7 @@ type NavItem = {
   label: string;
   featureKey?: FeatureKey;
   end?: boolean;
+  locked?: boolean;
 };
 
 const navItems: NavItem[] = [
@@ -51,15 +53,20 @@ const navItems: NavItem[] = [
   { to: "/school/settings", icon: Settings, label: "Settings" },
 ];
 
-function NavItemLink({ item }: { item: NavItem }) {
+// Routes that should not be locked even when school is not active
+const unlockedRoutes = ["/school", "/school/settings"];
+
+function NavItemLink({ item, isLocked }: { item: NavItem; isLocked: boolean }) {
   const navigate = useNavigate();
   const access = item.featureKey
     ? // eslint-disable-next-line react-hooks/rules-of-hooks
       useFeatureAccess(item.featureKey)
     : { enabled: true, locked: false };
 
+  const locked = isLocked || access.locked;
+
   const handleClick = (e: React.MouseEvent) => {
-    if (access.locked) {
+    if (locked) {
       e.preventDefault();
     }
   };
@@ -72,9 +79,9 @@ function NavItemLink({ item }: { item: NavItem }) {
       className={({ isActive }) =>
         cn(
           "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-          isActive && !access.locked
+          isActive && !locked
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : access.locked
+            : locked
             ? "text-sidebar-foreground/30 cursor-not-allowed"
             : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         )
@@ -82,16 +89,16 @@ function NavItemLink({ item }: { item: NavItem }) {
     >
       <item.icon className="h-4 w-4 shrink-0" />
       <span className="flex-1">{item.label}</span>
-      {access.locked && <Lock className="h-3 w-3 opacity-50" />}
+      {locked && <Lock className="h-3 w-3 opacity-50" />}
     </NavLink>
   );
 
-  if (access.locked) {
+  if (locked) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>{inner}</TooltipTrigger>
         <TooltipContent side="right" className="max-w-xs text-xs">
-          Feature not activated
+          {isLocked ? "Complete school setup to unlock" : "Feature not activated"}
         </TooltipContent>
       </Tooltip>
     );
@@ -106,6 +113,8 @@ const SchoolLayout = () => {
   const schoolName = useAppStore((s) => s.currentSchool?.name ?? "My School");
   const clearSession = useAppStore((s) => s.clearSession);
   const sidebarItems = useSidebarItems();
+  const schoolState = useAppStore((s) => s.schoolState);
+  const isLocked = schoolState !== 'active';
 
   const handleSignOut = () => {
     clearSession();
@@ -123,9 +132,11 @@ const SchoolLayout = () => {
       </div>
 
       <nav className="flex-1 space-y-0.5 px-3 py-4 overflow-y-auto">
-        {sidebarItems.map((item) => (
-          <NavItemLink key={item.to} item={item} />
-        ))}
+        {sidebarItems.map((item) => {
+          // Don't lock overview and settings
+          const shouldLock = isLocked && !unlockedRoutes.includes(item.to);
+          return <NavItemLink key={item.to} item={item} isLocked={shouldLock} />;
+        })}
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
@@ -158,12 +169,15 @@ const SchoolLayout = () => {
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Setup banner - shows when school is not active */}
+        <SetupBanner state={schoolState} />
+
         {/* Preview / suspended / payment_pending banner */}
         <PreviewBanner />
-        
+
         {/* Payment confirmation pop-up */}
         <PaymentConfirmationPopUp />
-        
+
         {/* Email confirmation banner */}
         <div className="px-4 lg:px-8 pt-4">
           <EmailConfirmationBanner />

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase/client";
 import {
+  School,
   Users,
   GraduationCap,
   DollarSign,
@@ -13,36 +14,7 @@ import {
   UserCircle,
   TrendingUp,
   MessageSquare,
-  School,
 } from "lucide-react";
-
-// Module icons mapping
-const moduleIcons: Record<string, React.ReactNode> = {
-  Attendance: <UserCheck className="h-5 w-5" />,
-  Students: <Users className="h-5 w-5" />,
-  Finance: <DollarSign className="h-5 w-5" />,
-  Exams: <BookOpen className="h-5 w-5" />,
-  Teachers: <GraduationCap className="h-5 w-5" />,
-  Reports: <BarChart3 className="h-5 w-5" />,
-  Timetable: <Clock className="h-5 w-5" />,
-  "Parent Portal": <UserCircle className="h-5 w-5" />,
-  Analytics: <TrendingUp className="h-5 w-5" />,
-  Communication: <MessageSquare className="h-5 w-5" />,
-};
-
-// All modules with icons
-const modules = [
-  "Attendance",
-  "Students",
-  "Finance",
-  "Exams",
-  "Teachers",
-  "Reports",
-  "Timetable",
-  "Parent Portal",
-  "Analytics",
-  "Communication",
-];
 
 interface LandingStats {
   schools: number;
@@ -123,7 +95,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0">
         <img
           src="/hero-school.png"
-          alt=""
+          alt="Modern school campus in Zambia"
           className="w-full h-full object-cover"
           loading="eager"
           decoding="async"
@@ -134,40 +106,39 @@ const HeroSection = () => {
       {/* Content Container - Centered with max-width */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <div className="max-w-3xl">
-          {/* Badge */}
+          {/* Eyebrow - Brand Positioning */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 bg-success/90 text-white px-4 py-2 rounded-full text-sm font-medium mb-6"
+            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6 border border-white/20"
           >
             <School className="h-4 w-4" />
-            School Management Platform
+            The Digital Operating System for Modern Schools
           </motion.div>
 
-          {/* Heading */}
+          {/* Headline - Transformation-focused */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
           >
-            School <span className="text-success">Pulse</span>
-            <br />
-            <span className="text-success/90">Management Made Simple</span>
+            Build a More{" "}
+            <span className="text-success">Connected</span> School.
           </motion.h1>
 
-          {/* Description */}
+          {/* Supporting Copy - Outcome-focused */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-6 text-lg sm:text-xl text-white/90 max-w-2xl leading-relaxed"
           >
-            A powerful, modular school management platform. Select only the features
-            you need — student management, teacher management, attendance, exams,
-            finance, timetable, parent portal, analytics, communication, and more —
-            with transparent, usage-based pricing.
+            School Pulse helps schools bring academics, administration, finance,
+            teachers, parents, and students together in one intelligent platform—so
+            your team can spend less time managing systems and more time shaping
+            futures.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -181,19 +152,18 @@ const HeroSection = () => {
               to="/onboarding"
               className="inline-flex items-center justify-center px-8 py-3 bg-success text-white font-semibold rounded-lg hover:bg-success/90 transition-colors focus:ring-2 focus:ring-success focus:ring-offset-2 focus:ring-offset-black"
             >
-              Create Your School
+              Create Account
             </Link>
             <Link
               to="/auth/login"
-              className="inline-flex items-center justify-center px-8 py-3 border-2 border-success/50 text-success font-semibold rounded-lg hover:bg-success/10 hover:border-success/70 transition-colors focus:ring-2 focus:ring-success focus:ring-offset-2 focus:ring-offset-black"
+              className="inline-flex items-center justify-center px-8 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 hover:border-white/50 transition-colors focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
             >
               Login
             </Link>
           </motion.div>
-
         </div>
 
-        {/* Stats Section - Live Data */}
+        {/* Stats Section - Trust & Social Proof */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -209,7 +179,10 @@ const HeroSection = () => {
               )}
               <span className="text-sm font-normal text-white/60 ml-1">+</span>
             </div>
-            <div className="text-sm text-white/60">Schools</div>
+            <div className="text-sm text-white/60 mt-1">Schools</div>
+            <div className="text-xs text-white/40 mt-0.5">
+              Growing together with schools
+            </div>
           </div>
           <div>
             <div className="text-3xl sm:text-4xl font-bold text-white">
@@ -220,7 +193,10 @@ const HeroSection = () => {
               )}
               <span className="text-sm font-normal text-white/60 ml-1">+</span>
             </div>
-            <div className="text-sm text-white/60">Students</div>
+            <div className="text-sm text-white/60 mt-1">Students</div>
+            <div className="text-xs text-white/40 mt-0.5">
+              Supporting every learner's journey
+            </div>
           </div>
           <div>
             <div className="text-3xl sm:text-4xl font-bold text-white">
@@ -231,14 +207,20 @@ const HeroSection = () => {
               )}
               <span className="text-sm font-normal text-white/60 ml-1">+</span>
             </div>
-            <div className="text-sm text-white/60">Teachers</div>
+            <div className="text-sm text-white/60 mt-1">Teachers</div>
+            <div className="text-xs text-white/40 mt-0.5">
+              Empowering educators every day
+            </div>
           </div>
           <div>
             <div className="text-3xl sm:text-4xl font-bold text-white">
               {stats.uptime}%
               <span className="text-sm font-normal text-white/60 ml-1">uptime</span>
             </div>
-            <div className="text-sm text-white/60">System Reliability</div>
+            <div className="text-sm text-white/60 mt-1">Reliability</div>
+            <div className="text-xs text-white/40 mt-0.5">
+              Technology schools can depend on
+            </div>
           </div>
         </motion.div>
       </div>

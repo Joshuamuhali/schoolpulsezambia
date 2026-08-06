@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore, type UserRole } from "@/store/appStore";
@@ -23,6 +23,7 @@ export function RequireAuth({
   const userRole = useAppStore((s) => s.userRole);
   const currentSchool = useAppStore((s) => s.currentSchool);
   const location = useLocation();
+  const navigate = useNavigate();
   const [isPlatformAdmin, setIsPlatformAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -43,6 +44,22 @@ export function RequireAuth({
 
   if (!session) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  // CRITICAL: Block unconfirmed users
+  if (!session.user.email_confirmed_at) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
+        <ShieldAlert className="mb-4 h-16 w-16 text-warning" />
+        <h1 className="mb-2 text-2xl font-bold">Email Confirmation Required</h1>
+        <p className="mb-6 text-muted-foreground">
+          Please check your email and click the confirmation link to activate your account.
+        </p>
+        <Button onClick={() => navigate('/auth/confirm-email')} variant="hero">
+          Resend Confirmation Email
+        </Button>
+      </div>
+    );
   }
 
   // Platform admin check using secure RPC

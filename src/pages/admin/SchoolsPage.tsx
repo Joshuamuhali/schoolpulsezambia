@@ -204,8 +204,8 @@ const SchoolsPage = () => {
                         </td>
                       </tr>
                     );
-                  })
-                )}
+                  }))
+                }
               </tbody>
               </table>
             </div>

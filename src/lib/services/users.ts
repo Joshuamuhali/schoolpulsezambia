@@ -23,7 +23,7 @@ function isDuplicate(key: string, windowMs: number = 5000): boolean {
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function signUp(email: string, password: string, fullName: string) {
+export async function signUp(email: string, password: string, fullName: string, phone?: string) {
   if (isDuplicate(`signup:${email}`)) {
     throw new Error("Too many attempts. Please wait a moment.");
   }
@@ -32,12 +32,41 @@ export async function signUp(email: string, password: string, fullName: string) 
     email,
     password,
     options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
       data: {
         full_name: fullName,
+        phone: phone,
       },
     },
   });
-  if (error) throw error;
+
+  // CRITICAL: Log the complete response for debugging
+  console.log('[signUp] Response received:', {
+    userId: data.user?.id,
+    email: data.user?.email,
+    confirmed: data.user?.email_confirmed_at,
+    confirmationSent: data.user?.confirmation_sent_at,
+    hasSession: !!data.session,
+    error: error ? {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+    } : null,
+  });
+
+  if (error) {
+    console.error('[signUp] Signup failed:', error);
+    throw error;
+  }
+
+  // Log whether email confirmation was sent
+  if (data.user && !data.user.email_confirmed_at) {
+    console.log('[signUp] User created, email confirmation required');
+    console.log('[signUp] confirmation_sent_at:', data.user.confirmation_sent_at);
+  } else if (data.user && data.user.email_confirmed_at) {
+    console.log('[signUp] User created and already confirmed (auto-confirmed)');
+  }
+
   return data;
 }
 
@@ -173,10 +202,10 @@ export async function fetchUserPermissions(userId: string): Promise<string[]> {
   if (error) throw error;
 
   const permissions: string[] = [];
-  (data ?? []).forEach((sm) => {
+  (data ?? []).forEach((sm: any) => {
     const roles = sm.roles as { role_permissions: { permissions: { key: string } }[] } | null;
     if (roles) {
-      (roles.role_permissions ?? []).forEach((rp) => {
+      (roles.role_permissions ?? []).forEach((rp: any) => {
         if (rp.permissions?.key) permissions.push(rp.permissions.key);
       });
     }

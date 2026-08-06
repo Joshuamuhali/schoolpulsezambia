@@ -320,14 +320,26 @@ CREATE TRIGGER trg_payment_verifications_updated  BEFORE UPDATE ON payment_verif
 
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_full_name TEXT;
+  v_phone TEXT;
 BEGIN
-  INSERT INTO profiles (id, full_name, email)
+  -- Extract metadata
+  v_full_name := COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1));
+  v_phone := NEW.raw_user_meta_data->>'phone';
+  
+  -- Insert profile with available columns
+  INSERT INTO profiles (id, full_name, email, phone)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    NEW.email
+    v_full_name,
+    NEW.email,
+    v_phone
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE
+    SET full_name = EXCLUDED.full_name,
+        email = EXCLUDED.email,
+        phone = COALESCE(EXCLUDED.phone, profiles.phone);
   RETURN NEW;
 END;
 $$;

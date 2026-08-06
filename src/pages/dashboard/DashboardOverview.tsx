@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppStore } from "@/store/appStore";
 import { fetchSchoolDashboardStats, fetchRecentActivity } from "@/lib/services/dashboard";
 import { formatDistanceToNow } from "date-fns";
+import SetupChecklistWidget from "@/components/dashboard/SetupChecklistWidget";
 
 const DashboardOverview = () => {
   const schoolId = useAppStore((s) => s.currentSchool?.id);
@@ -58,8 +59,8 @@ const DashboardOverview = () => {
     },
     {
       label: "Revenue (All Time)",
-      value: stats ? `K ${stats.revenueCurrentTerm.toLocaleString()}` : undefined,
-      sub: `K ${stats?.pendingBillsAmount.toLocaleString() ?? 0} outstanding`,
+      value: stats ? `K ${stats.revenueAllTime.toLocaleString()}` : undefined,
+      sub: `K ${stats?.unpaidInvoicesAmount.toLocaleString() ?? 0} outstanding`,
       icon: CreditCard,
       up: true,
     },
@@ -109,6 +110,9 @@ const DashboardOverview = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Setup Checklist Widget */}
+      <SetupChecklistWidget />
 
       {/* Recent activity */}
       <Card className="shadow-card">

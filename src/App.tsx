@@ -7,14 +7,21 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { TenantSwitchPrompt } from "@/components/auth/TenantSwitchPrompt";
 import LoginPage from "@/pages/auth/LoginPage";
-import OnboardingPage from "@/pages/auth/OnboardingPage";
+import AccountCreationPage from "@/pages/auth/AccountCreationPage";
 import { ActivationPage } from "@/pages/auth/ActivationPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import { BlockedAccessPage } from "@/pages/auth/BlockedAccessPage";
+import AuthCallback from "@/pages/auth/AuthCallback";
+import ConfirmEmailPage from "@/pages/auth/ConfirmEmailPage";
 
 // Onboarding
 import ModuleSelectionPage from "@/pages/onboarding/ModuleSelectionPage";
 import PaymentPage from "@/pages/onboarding/PaymentPage";
+import { KYCOnboardingPage } from "@/pages/onboarding/KYCOnboardingPage";
+import WelcomePage from "@/pages/onboarding/WelcomePage";
+import OnboardingPage from "@/pages/auth/OnboardingPage";
+import SchoolRegistrationPage from "@/pages/onboarding/SchoolRegistrationPage";
+import PendingApprovalPage from "@/pages/onboarding/PendingApprovalPage";
 
 // Landing
 import Index from "@/pages/Index";
@@ -101,6 +108,8 @@ import SetupFeePaymentPage from "@/pages/school/SetupFeePaymentPage";
 import AnalyticsPage from "@/pages/admin/AnalyticsPage";
 import SupportPage from "@/pages/admin/SupportPage";
 import SchoolFeaturesPage from "@/pages/school/FeaturesPage";
+import { KYCApprovalPage } from "@/pages/admin/KYCApprovalPage";
+import SchoolLeadsPage from "@/pages/admin/SchoolLeadsPage";
 
 // Dashboard Router
 import { DashboardRouter } from "@/components/auth/DashboardRouter";
@@ -124,15 +133,25 @@ const App = () => (
           {/* ── Public ─────────────────────────────────────────────────── */}
           <Route path="/" element={<Index />} />
           <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/onboarding/signup" element={<AccountCreationPage />} />
+          <Route path="/onboarding/setup" element={<OnboardingPage />} />
+          <Route path="/onboarding/kyc" element={<KYCOnboardingPage />} />
           <Route path="/onboarding/modules" element={<ModuleSelectionPage />} />
           <Route path="/onboarding/payment" element={<PaymentPage />} />
           <Route path="/onboarding/activate" element={<ActivationPage />} />
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/access-blocked" element={<BlockedAccessPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/confirm-email" element={<ConfirmEmailPage />} />
+          <Route path="/onboarding/welcome" element={<WelcomePage />} />
+          <Route path="/onboarding/school-registration" element={<SchoolRegistrationPage />} />
+          <Route path="/onboarding/pending-approval" element={<PendingApprovalPage />} />
 
           {/* Legacy /login redirect */}
           <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+          
+          {/* Legacy /onboarding redirect */}
+          <Route path="/onboarding" element={<Navigate to="/onboarding/signup" replace />} />
 
           {/* ── Smart Dashboard Router ─────────────────────────────────── */}
           <Route
@@ -204,6 +223,7 @@ const App = () => (
             <Route path="schools" element={<SchoolsPage />} />
             <Route path="schools/create" element={<SchoolsPage />} />
             <Route path="schools/:id" element={<SchoolDetailPage />} />
+            <Route path="leads" element={<SchoolLeadsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="logs" element={<LogsPage />} />
@@ -219,6 +239,7 @@ const App = () => (
             <Route path="settings/teachers" element={<TeacherSettingsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="support" element={<SupportPage />} />
+            <Route path="kyc-approval" element={<KYCApprovalPage />} />
           </Route>
 
           {/* ── Setup Fee Payment (requires auth) ───────────────────────── */}

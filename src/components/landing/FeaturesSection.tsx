@@ -10,80 +10,110 @@ import {
   UserCircle,
   BarChart3,
   Shield,
+  Target,
+  Heart,
+  Lightbulb,
+  Lock,
 } from "lucide-react";
 
-const features = [
+const outcomeModules = [
   {
-    title: "Student Management",
-    description: "Complete student profiles, enrollment, transfers, and academic history tracking.",
+    title: "Student Journey",
+    description:
+      "Every learner deserves a complete, organized academic journey—from admission through graduation.",
     icon: Users,
+    keywords: "student management, admissions, enrollment, academic records",
   },
   {
-    title: "Teacher Management",
-    description: "Manage teacher profiles, assignments, workload, and performance reviews.",
+    title: "Teacher Success",
+    description:
+      "Give educators the tools they need to manage classrooms efficiently and focus on teaching.",
     icon: GraduationCap,
+    keywords: "teacher management, classroom, educator tools",
   },
   {
-    title: "Attendance",
-    description: "Daily attendance tracking with bulk entry, reports, and parent notifications.",
+    title: "Attendance & Engagement",
+    description:
+      "Understand attendance trends, improve accountability, and keep families informed.",
     icon: UserCheck,
+    keywords: "attendance tracking, student engagement, parent notifications",
   },
   {
-    title: "Exams & Grading",
-    description: "Create exams, enter marks, calculate grades, and generate report cards.",
-    icon: BookOpen,
+    title: "Assessment & Growth",
+    description:
+      "Transform assessments into meaningful insights that support better learning outcomes.",
+    icon: Target,
+    keywords: "exams, grading, report cards, academic performance",
   },
   {
-    title: "Finance",
-    description: "Fee structures, student billing, payment tracking, and financial reports.",
+    title: "Financial Confidence",
+    description:
+      "Manage school finances with greater visibility, accountability, and control.",
     icon: DollarSign,
+    keywords: "school fees, billing, payment tracking, financial reports",
   },
   {
-    title: "Communication",
-    description: "Announcements, notifications, SMS/email alerts, and parent-teacher messaging.",
+    title: "Connected Communication",
+    description:
+      "Bring school leaders, teachers, parents, and students together through timely communication.",
     icon: MessageSquare,
+    keywords: "announcements, notifications, parent-teacher messaging",
   },
   {
-    title: "Timetable",
-    description: "Visual timetable builder with conflict detection and multiple views.",
+    title: "Smarter Scheduling",
+    description:
+      "Create organized school timetables that keep learning running smoothly.",
     icon: Clock,
+    keywords: "timetable, scheduling, class management",
   },
   {
-    title: "Parent Portal",
-    description: "Parent access to attendance, results, fees, and school announcements.",
-    icon: UserCircle,
+    title: "Parent Partnership",
+    description:
+      "Help families stay informed, engaged, and connected throughout their child's education.",
+    icon: Heart,
+    keywords: "parent portal, family engagement, student progress",
   },
   {
-    title: "Analytics",
-    description: "Advanced analytics, predictive insights, and custom dashboards.",
-    icon: BarChart3,
+    title: "Leadership Insights",
+    description:
+      "Turn school data into clear insights that support confident decision-making.",
+    icon: Lightbulb,
+    keywords: "analytics, dashboards, school performance, data insights",
   },
   {
-    title: "Data Security",
-    description: "Enterprise-grade security with RLS policies, encryption, and audit logs.",
-    icon: Shield,
+    title: "Secure Foundation",
+    description:
+      "Protect your school's information with enterprise-grade security built for trust and reliability.",
+    icon: Lock,
+    keywords: "data security, encryption, cloud security, privacy",
   },
 ];
 
 const FeaturesSection = () => {
   return (
-    <section className="py-16 md:py-24 bg-muted/30">
+    <section id="platform" className="py-16 md:py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header - Centered */}
+        {/* Section Header - Value Proposition */}
         <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-            Everything You Need to Run Your School
+            One Platform. One Connected School Community.
           </h2>
           <p className="mt-4 text-lg text-foreground/60 max-w-2xl mx-auto">
-            Choose the modules you need and scale as your school grows.
-            All modules work seamlessly together.
+            Running a modern school is about more than managing records. It's about
+            creating an environment where school leaders, teachers, parents, and
+            students stay connected through reliable information, clear communication,
+            and efficient operations.
+          </p>
+          <p className="mt-3 text-base text-foreground/50 max-w-2xl mx-auto">
+            Choose the capabilities your school needs today and expand as your
+            community grows.
           </p>
         </div>
 
-        {/* Features Grid - Centered */}
+        {/* Modules Grid - Outcome-focused */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
+          {outcomeModules.map((module, index) => {
+            const Icon = module.icon;
             return (
               <motion.div
                 key={index}
@@ -98,11 +128,11 @@ const FeaturesSection = () => {
                     <Icon className="h-6 w-6" />
                   </div>
                   <h3 className="font-semibold text-foreground text-base">
-                    {feature.title}
+                    {module.title}
                   </h3>
                 </div>
                 <p className="text-sm text-foreground/60 leading-relaxed">
-                  {feature.description}
+                  {module.description}
                 </p>
               </motion.div>
             );

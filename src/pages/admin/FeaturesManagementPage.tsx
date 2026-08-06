@@ -47,8 +47,8 @@ const FeaturesManagementPage = () => {
     name: "",
     description: "",
     category: "academic" as FeatureCategory,
-    monthly_price: 0,
-    setup_fee: 0,
+    monthly_price: "",
+    setup_fee: "",
     is_core: false,
     is_active: true,
   });
@@ -72,16 +72,23 @@ const FeaturesManagementPage = () => {
   // Create/Update feature mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const monthlyPrice = typeof formData.monthly_price === 'string' 
+        ? Number(formData.monthly_price) 
+        : formData.monthly_price;
+      const setupFee = typeof formData.setup_fee === 'string' 
+        ? Number(formData.setup_fee) 
+        : formData.setup_fee;
+
       if (editingFeature) {
         // Update
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("module_catalog")
           .update({
             name: formData.name,
             description: formData.description,
             category: formData.category,
-            monthly_price: formData.monthly_price,
-            setup_fee: formData.setup_fee,
+            monthly_price: monthlyPrice,
+            setup_fee: setupFee,
             is_core: formData.is_core,
             is_active: formData.is_active,
           })
@@ -93,15 +100,15 @@ const FeaturesManagementPage = () => {
         return data;
       } else {
         // Create
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("module_catalog")
           .insert({
             code: formData.code,
             name: formData.name,
             description: formData.description,
             category: formData.category,
-            monthly_price: formData.monthly_price,
-            setup_fee: formData.setup_fee,
+            monthly_price: monthlyPrice,
+            setup_fee: setupFee,
             is_core: formData.is_core,
             is_active: formData.is_active,
           })
@@ -126,7 +133,7 @@ const FeaturesManagementPage = () => {
   // Toggle feature status
   const toggleMutation = useMutation({
     mutationFn: async ({ code, is_active }: { code: string; is_active: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("module_catalog")
         .update({ is_active: !is_active })
         .eq("code", code);
@@ -142,7 +149,7 @@ const FeaturesManagementPage = () => {
   // Delete feature
   const deleteMutation = useMutation({
     mutationFn: async (code: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("module_catalog")
         .delete()
         .eq("code", code);
@@ -161,8 +168,8 @@ const FeaturesManagementPage = () => {
       name: "",
       description: "",
       category: "academic",
-      monthly_price: 0,
-      setup_fee: 0,
+      monthly_price: "",
+      setup_fee: "",
       is_core: false,
       is_active: true,
     });
@@ -176,8 +183,8 @@ const FeaturesManagementPage = () => {
       name: feature.name,
       description: feature.description,
       category: feature.category,
-      monthly_price: feature.monthly_price,
-      setup_fee: feature.setup_fee,
+      monthly_price: String(feature.monthly_price),
+      setup_fee: String(feature.setup_fee),
       is_core: feature.is_core,
       is_active: feature.is_active,
     });
@@ -430,7 +437,7 @@ const FeaturesManagementPage = () => {
                   type="number"
                   placeholder="0"
                   value={formData.monthly_price}
-                  onChange={(e) => setFormData({ ...formData, monthly_price: Number(e.target.value) })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, monthly_price: e.target.value })}
                 />
               </div>
               <div>
@@ -440,7 +447,7 @@ const FeaturesManagementPage = () => {
                   type="number"
                   placeholder="0"
                   value={formData.setup_fee}
-                  onChange={(e) => setFormData({ ...formData, setup_fee: Number(e.target.value) })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, setup_fee: e.target.value })}
                 />
               </div>
             </div>

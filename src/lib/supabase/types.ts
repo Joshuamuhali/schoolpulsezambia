@@ -12,6 +12,55 @@
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
+export type SchoolType = 
+  | 'primary_school'
+  | 'secondary_school'
+  | 'combined_school'
+  | 'college_institution'
+  | 'other';
+
+export type ContactRole = 
+  | 'owner'
+  | 'director'
+  | 'principal'
+  | 'administrator'
+  | 'it_officer'
+  | 'other';
+
+export type ContactMethod = 
+  | 'whatsapp'
+  | 'phone_call'
+  | 'email';
+
+export type StudentCountRange = 
+  | 'under_100'
+  | '100_300'
+  | '301_500'
+  | '501_1000'
+  | '1000_plus';
+
+export type CurrentSystem = 
+  | 'paper_based'
+  | 'spreadsheets'
+  | 'multiple_systems'
+  | 'existing_software'
+  | 'other';
+
+export type Timeline = 
+  | 'immediately'
+  | '1_3_months'
+  | '3_6_months'
+  | 'just_exploring';
+
+export type LeadStatus = 
+  | 'new'
+  | 'contacted'
+  | 'discovery_call'
+  | 'demo_scheduled'
+  | 'trial_started'
+  | 'converted'
+  | 'lost';
+
 export type RoleScope = "platform" | "school";
 export type AccessState = "draft" | "preview" | "payment_pending" | "active" | "suspended";
 export type AttendanceStatus = "present" | "absent" | "late";
@@ -1273,6 +1322,53 @@ export interface EmailProvider {
   updated_at: string;
 }
 
+// ─── Lead Management ──────────────────────────────────────────────────────────
+
+export interface SchoolLead {
+  id: string;
+  school_name: string;
+  school_type: SchoolType;
+  location_city?: string;
+  location_province?: string;
+  contact_name: string;
+  contact_role: ContactRole;
+  phone: string;
+  email: string;
+  preferred_contact_method: ContactMethod;
+  student_count_range: StudentCountRange;
+  current_system: CurrentSystem;
+  interested_modules: string[];
+  timeline: Timeline;
+  message?: string;
+  status: LeadStatus;
+  assigned_to?: string;
+  notes?: string;
+  source?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SchoolLeadInsert {
+  school_name: string;
+  school_type: SchoolType;
+  location_city?: string;
+  location_province?: string;
+  contact_name: string;
+  contact_role: ContactRole;
+  phone: string;
+  email: string;
+  preferred_contact_method: ContactMethod;
+  student_count_range: StudentCountRange;
+  current_system: CurrentSystem;
+  interested_modules: string[];
+  timeline: Timeline;
+  message?: string;
+  source?: string;
+}
+
 // ─── Database interface ───────────────────────────────────────────────────────
 
 export interface Database {
@@ -1347,6 +1443,8 @@ export interface Database {
       admission_payments:   { Row: AdmissionPayment; Insert: Omit<AdmissionPayment, "id" | "created_at" | "updated_at">; Update: Partial<AdmissionPayment> };
       student_transfers:    { Row: StudentTransfer;  Insert: Omit<StudentTransfer, "id" | "created_at" | "updated_at">; Update: Partial<StudentTransfer> };
       student_import_logs:  { Row: StudentImportLog; Insert: Omit<StudentImportLog, "id" | "imported_at">;         Update: Partial<StudentImportLog> };
+      // Lead Management
+      school_leads:         { Row: SchoolLead;  Insert: SchoolLeadInsert;  Update: any };
       // Parent Portal & Communication
       parent_profiles:      { Row: ParentProfile;    Insert: Omit<ParentProfile, "id" | "created_at" | "updated_at">; Update: Partial<ParentProfile> };
       announcements:        { Row: Announcement;     Insert: Omit<Announcement, "id" | "created_at" | "updated_at">; Update: Partial<Announcement> };

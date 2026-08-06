@@ -137,6 +137,15 @@ export function useAuth(): AuthState {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
+      
+      // CRITICAL: Block unconfirmed users
+      if (s?.user && !s.user.email_confirmed_at) {
+        console.log("[useAuth] Unconfirmed user detected, clearing session");
+        clearSession();
+        setLoading(false);
+        return;
+      }
+      
       if (s?.user) {
         loadUserContext(s.user).finally(() => setLoading(false));
       } else {
@@ -148,6 +157,14 @@ export function useAuth(): AuthState {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
+      
+      // CRITICAL: Block unconfirmed users
+      if (s?.user && !s.user.email_confirmed_at) {
+        console.log("[useAuth] Unconfirmed user detected, clearing session");
+        clearSession();
+        return;
+      }
+      
       if (s?.user) {
         loadUserContext(s.user);
       } else {

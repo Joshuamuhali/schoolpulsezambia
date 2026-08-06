@@ -20,6 +20,7 @@ import {
   Tags,
   CheckCircle,
   User,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,12 +41,13 @@ import { supabase } from "@/lib/supabase/client";
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/admin/schools", icon: School, label: "Schools" },
+  { to: "/admin/leads", icon: UserPlus, label: "School Leads" },
   { to: "/admin/payments", icon: CreditCard, label: "Payments", badge: 15 },
   { to: "/admin/subscriptions", icon: DollarSign, label: "Subscriptions" },
   { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/features", icon: CheckCircle, label: "Features" },
   { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
-  { to: "/admin/audit", icon: FileText, label: "Audit Logs" },
+  { to: "/admin/logs", icon: FileText, label: "Audit Logs" },
   { to: "/admin/support", icon: LifeBuoy, label: "Support", badge: 8 },
   { to: "/admin/settings", icon: Settings, label: "Settings" },
 ];
@@ -67,18 +69,28 @@ const AdminLayout = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Use profiles_view for platform admins (fixes 406 error)
           const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name")
+            .from("profiles_view")
+            .select("full_name, platform_role")
             .eq("id", user.id)
-            .single();
+            .maybeSingle();
 
-          if (profile) {
+          const hasProfile = !!profile;
+          
+          if (hasProfile) {
             const profileData = profile as any;
             setUserName(profileData.full_name || user.email || "User");
+            // If platform admin, use platform_role
+            if (profileData.platform_role) {
+              setUserRole(profileData.platform_role);
+            }
+          } else {
+            // Fallback to email if no profile
+            setUserName(user.email || "User");
           }
 
-          // Fetch role from school_members
+          // Fetch role from school_members (if not platform admin)
           const { data: member } = await supabase
             .from("school_members")
             .select("role")
@@ -86,7 +98,7 @@ const AdminLayout = () => {
             .limit(1)
             .maybeSingle();
 
-          if (member) {
+          if (member && !hasProfile && member) {
             const memberData = member as any;
             if (memberData.role) {
               setUserRole(memberData.role);

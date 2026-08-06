@@ -28,6 +28,13 @@ const onboardingSchema = z.object({
   schoolName: z.string().min(3, "School name must be at least 3 characters"),
   subdomain: z.string().min(3, "Subdomain must be at least 3 characters")
     .regex(/^[a-z0-9-]+$/, "Subdomain can only contain lowercase letters, numbers, and hyphens"),
+  schoolType: z.enum(["day", "boarding", "mixed"], {
+    required_error: "Please select a school type",
+  }),
+  educationLevel: z.enum(["ece", "primary", "secondary", "combined"], {
+    required_error: "Please select an education level",
+  }),
+  yearEstablished: z.coerce.number().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -113,7 +120,7 @@ const OnboardingPage = () => {
 
   const nextStep = async () => {
     let fieldsToValidate: (keyof OnboardingValues)[] = [];
-    if (step === 2) fieldsToValidate = ["schoolName", "subdomain"];
+    if (step === 2) fieldsToValidate = ["schoolName", "schoolType", "educationLevel", "subdomain"];
 
     const isValid = await trigger(fieldsToValidate);
     if (isValid) setStep(step + 1);
@@ -159,7 +166,7 @@ const OnboardingPage = () => {
 
       setSuccess(true);
       setTimeout(() => {
-        navigate("/school/setup-fee-payment");
+        navigate("/onboarding/kyc");
       }, 3000);
     } catch (err: any) {
       setError(err.message || "An error occurred during onboarding.");
@@ -171,56 +178,128 @@ const OnboardingPage = () => {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
-          <Card className="text-center p-8">
-            <CheckCircle2 className="mx-auto h-16 w-16 text-success mb-6" />
-            <CardTitle className="text-2xl mb-2">School Registered!</CardTitle>
-            <CardDescription className="text-lg">
-              Welcome to School Pulse. <strong>{getValues("schoolName")}</strong> is ready.
-            </CardDescription>
+      <div className="flex min-h-screen">
+        {/* Left panel */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
+          <div className="absolute inset-0 bg-success/5">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full bg-success"
+                style={{
+                  width: `${60 + i * 40}px`,
+                  height: `${60 + i * 40}px`,
+                  top: `${10 + i * 15}%`,
+                  left: `${5 + i * 12}%`,
+                  opacity: 0.15 + i * 0.08,
+                }}
+              />
+            ))}
+          </div>
+          <div className="relative z-10 text-center space-y-6">
+            <Activity className="mx-auto h-20 w-20 text-primary" />
+            <h2 className="font-display text-4xl font-bold text-success">School Management Platform</h2>
+            <p className="text-primary-foreground/70 max-w-sm">
+              Multi-tenant school management — modular, transparent, and built for African schools.
+            </p>
+          </div>
+        </div>
+
+        {/* Right panel */}
+        <div className="flex flex-1 items-center justify-center p-8">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
+            <Card className="text-center p-8">
+              <CheckCircle2 className="mx-auto h-16 w-16 text-success mb-6" />
+              <CardTitle className="text-2xl mb-2">School Registered!</CardTitle>
+              <CardDescription className="text-lg">
+                Welcome to School Pulse. <strong>{getValues("schoolName")}</strong> is ready.
+              </CardDescription>
               <div className="mt-8">
                 <p className="text-sm text-muted-foreground mb-4">Redirecting you to your dashboard...</p>
                 <Button variant="hero" className="w-full" onClick={() => navigate("/dashboard")}>
                   Go to Dashboard
                 </Button>
               </div>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-lg space-y-8">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Activity className="h-10 w-10 text-primary" />
-            <span className="font-display text-2xl font-bold">School Pulse</span>
-          </div>
-          <h1 className="font-display text-3xl font-bold">Create your school</h1>
-          <p className="text-muted-foreground mt-2">The most modular platform for African schools</p>
+    <div className="flex min-h-screen">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-hero items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-success/5">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-success"
+              style={{
+                width: `${60 + i * 40}px`,
+                height: `${60 + i * 40}px`,
+                top: `${10 + i * 15}%`,
+                left: `${5 + i * 12}%`,
+                opacity: 0.15 + i * 0.08,
+              }}
+            />
+          ))}
         </div>
+        <div className="relative z-10 text-center space-y-6">
+          <Activity className="mx-auto h-20 w-20 text-primary" />
+          <h2 className="font-display text-4xl font-bold text-success">School Management Platform</h2>
+          <p className="text-primary-foreground/70 max-w-sm">
+            Multi-tenant school management — modular, transparent, and built for African schools.
+          </p>
+        </div>
+      </div>
 
-        <div className="relative">
-          <div className="flex justify-between mb-8 relative px-2">
+      {/* Right panel */}
+      <div className="flex flex-1 items-center justify-center p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md space-y-6"
+        >
+          <div className="text-center lg:text-left">
+            <div className="flex items-center gap-2 mb-4 justify-center lg:justify-start">
+              <Activity className="h-8 w-8 text-primary" />
+              <span className="font-display text-xl font-bold text-primary">School Pulse</span>
+            </div>
+            <h1 className="font-display text-3xl font-bold text-primary mb-2">Create Your School</h1>
+            <p className="mt-1 text-muted-foreground">Set up your school in a few simple steps</p>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center gap-2">
             {[1, 2, 3, 4].map((s) => (
-              <div
-                key={s}
-                className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
-                  step >= s ? "bg-primary border-primary text-primary-foreground" : "bg-background border-muted text-muted-foreground"
-                }`}
-              >
-                {s < step ? <CheckCircle2 className="h-6 w-6" /> : <span>{s}</span>}
+              <div key={s} className="flex items-center gap-2">
+                <div
+                  className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    step >= s
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {s}
+                </div>
+                {s < 4 && (
+                  <div
+                    className={`h-0.5 w-8 ${
+                      step > s ? "bg-primary" : "bg-muted"
+                    }`}
+                  />
+                )}
               </div>
             ))}
-            <div className="absolute top-1/2 left-0 h-0.5 w-full bg-muted -translate-y-1/2 z-0" />
-            <div
-              className="absolute top-1/2 left-0 h-0.5 bg-primary transition-all duration-300 -translate-y-1/2 z-0"
-              style={{ width: `${((step - 1) / 3) * 100}%` }}
-            />
           </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
           <form onSubmit={(e) => { e.preventDefault(); if (step === 4) handleSubmit(onSubmit)(e); }}>
             <AnimatePresence mode="wait">
@@ -235,7 +314,6 @@ const OnboardingPage = () => {
                       <CardDescription>Enter your details to create your administrator account</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
                       <div className="space-y-2">
                         <Label htmlFor="fullName">Full Name</Label>
                         <Input id="fullName" placeholder="Joshua Muhali" {...register("fullName")} />
@@ -259,7 +337,7 @@ const OnboardingPage = () => {
                     </CardContent>
                     <CardFooter>
                       <Button type="button" className="w-full" onClick={handleCreateAccount} disabled={loading}>
-                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
+                        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</> : "Create Account"}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -277,11 +355,43 @@ const OnboardingPage = () => {
                       <CardDescription>Tell us about your school</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
                       <div className="space-y-2">
-                        <Label htmlFor="schoolName">School Name</Label>
+                        <Label htmlFor="schoolName">School Name *</Label>
                         <Input id="schoolName" placeholder="Acacia Country School" {...register("schoolName")} />
                         {errors.schoolName && <p className="text-xs text-destructive">{errors.schoolName.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="schoolType">School Type *</Label>
+                        <select
+                          id="schoolType"
+                          {...register("schoolType")}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">Select school type</option>
+                          <option value="day">Day School</option>
+                          <option value="boarding">Boarding School</option>
+                          <option value="mixed">Mixed</option>
+                        </select>
+                        {errors.schoolType && <p className="text-xs text-destructive">{errors.schoolType.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="educationLevel">Education Level *</Label>
+                        <select
+                          id="educationLevel"
+                          {...register("educationLevel")}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">Select education level</option>
+                          <option value="ece">ECE</option>
+                          <option value="primary">Primary</option>
+                          <option value="secondary">Secondary</option>
+                          <option value="combined">Combined School</option>
+                        </select>
+                        {errors.educationLevel && <p className="text-xs text-destructive">{errors.educationLevel.message}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="yearEstablished">Year Established (Optional)</Label>
+                        <Input id="yearEstablished" type="number" placeholder="e.g., 2000" {...register("yearEstablished")} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="subdomain">Subdomain</Label>
@@ -391,14 +501,7 @@ const OnboardingPage = () => {
               )}
             </AnimatePresence>
           </form>
-        </div>
-
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/auth/login" className="text-primary font-medium hover:underline">
-            Sign in
-          </Link>
-        </p>
+        </motion.div>
       </div>
     </div>
   );

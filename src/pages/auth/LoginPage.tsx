@@ -22,13 +22,21 @@ const LoginPage = () => {
     e.preventDefault();
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
-    
+
     setError(null);
     setLoading(true);
 
     try {
       const { user } = await signIn(email, password);
       if (!user) throw new Error("Login failed — no user returned.");
+
+      // Check if email is confirmed
+      if (!user.email_confirmed_at) {
+        // Store email for resend functionality
+        localStorage.setItem('pending_confirmation_email', email);
+        navigate('/auth/confirm-email', { replace: true });
+        return;
+      }
 
       // Use secure RPC function for redirection logic
       const { data: isPlatformAdmin } = await supabase.rpc("is_platform_admin");
@@ -40,7 +48,7 @@ const LoginPage = () => {
       const msg = raw.toLowerCase().includes("invalid login")
         ? "Invalid email or password. Check your credentials and try again."
         : raw.toLowerCase().includes("email not confirmed")
-        ? "Email not confirmed. Contact your administrator."
+        ? "Email not confirmed. Please check your inbox and confirm your email before logging in."
         : raw;
       setError(msg);
       setLoading(false);

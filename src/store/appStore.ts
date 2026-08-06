@@ -24,6 +24,8 @@ export type UserRole =
 
 export type AccessState = "draft" | "preview" | "payment_pending" | "active" | "suspended";
 
+export type SchoolState = 'no_school' | 'setup_complete' | 'kyc_pending' | 'kyc_approved' | 'active';
+
 export type FeatureKey =
   | "students"
   | "teachers"
@@ -54,6 +56,7 @@ type AppStore = {
   userRole: UserRole | null;
   userId: string | null;
   currentSchool: School | null;
+  schoolState: SchoolState;
   contextMismatch: { targetSubdomain: string; targetSchoolId: string; targetSchoolName: string } | null;
 
   setUserRole: (role: UserRole) => void;
@@ -61,6 +64,7 @@ type AppStore = {
   setCurrentSchool: (school: School) => void;
   setAccessState: (state: AccessState) => void;
   setFeatureFlag: (key: FeatureKey, status: FeatureStatus) => void;
+  setSchoolState: (state: SchoolState) => void;
   setContextMismatch: (mismatch: { targetSubdomain: string; targetSchoolId: string; targetSchoolName: string } | null) => void;
   clearSession: () => void;
 };
@@ -71,6 +75,7 @@ export const useAppStore = create<AppStore>()(
       userRole: null,
       userId: null,
       currentSchool: null,
+      schoolState: 'no_school' as SchoolState,
       contextMismatch: null,
 
       setUserRole: (role) => set({ userRole: role }),
@@ -97,10 +102,12 @@ export const useAppStore = create<AppStore>()(
             : {}
         ),
 
+      setSchoolState: (state) => set({ schoolState: state }),
+
       setContextMismatch: (mismatch) => set({ contextMismatch: mismatch }),
 
       clearSession: () =>
-        set({ userRole: null, userId: null, currentSchool: null, contextMismatch: null }),
+        set({ userRole: null, userId: null, currentSchool: null, schoolState: 'no_school', contextMismatch: null }),
     }),
     { name: "schoolpulse-session" }
   )

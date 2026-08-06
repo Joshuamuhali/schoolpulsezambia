@@ -7,7 +7,8 @@
 CREATE OR REPLACE FUNCTION public.create_school_onboarding(
   p_school_name TEXT,
   p_subdomain   TEXT,
-  p_admin_id     UUID
+  p_admin_id     UUID,
+  p_selected_modules TEXT[] DEFAULT NULL
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -60,7 +61,47 @@ BEGIN
     UPDATE profiles SET full_name = v_full_name WHERE id = p_admin_id;
   END IF;
 
-  -- 8. Prepare result
+  -- 8. Save module selections if provided
+  IF p_selected_modules IS NOT NULL AND array_length(p_selected_modules, 1) > 0 THEN
+    INSERT INTO school_module_selections (
+      school_id,
+      module_codes,
+      total_monthly,
+      setup_fee,
+      grand_total,
+      billing_frequency,
+      selected_at,
+      expires_at
+    )
+    SELECT
+      v_school_id,
+      p_selected_modules,
+      COALESCE(SUM(
+        CASE 'monthly'
+          WHEN 'monthly' THEN price_monthly
+          WHEN 'termly' THEN price_termly
+          WHEN 'annual' THEN price_annual
+          ELSE price_monthly
+        END
+      ), 0),
+      100.00,
+      COALESCE(SUM(
+        CASE 'monthly'
+          WHEN 'monthly' THEN price_monthly
+          WHEN 'termly' THEN price_termly
+          WHEN 'annual' THEN price_annual
+          ELSE price_monthly
+        END
+      ), 0) + 100.00,
+      'monthly',
+      NOW(),
+      NOW() + INTERVAL '7 days'
+    FROM module_catalog
+    WHERE code = ANY(p_selected_modules)
+      AND is_active = true;
+  END IF;
+
+  -- 9. Prepare result
   v_result := jsonb_build_object(
     'school_id', v_school_id,
     'school_name', p_school_name,
